@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user/**
+          filters:
+            - CustomRouteFilter
+
+app:
+  jwt:
+    secret: "MySuperSecretKeyForJwtToken123456"
+    expiration-ms: 86400000
+
+server:
+  port: 8084
+eureka:
+  client:
+
