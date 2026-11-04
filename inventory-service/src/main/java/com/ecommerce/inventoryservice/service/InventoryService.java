@@ -3,6 +3,7 @@ package com.ecommerce.inventoryservice.service;
 import com.ecommerce.inventoryservice.dto.InventoryRequest;
 import com.ecommerce.inventoryservice.dto.InventoryResponse;
 import com.ecommerce.inventoryservice.entity.Inventory;
+import com.ecommerce.inventoryservice.event.OrderPlacedEvent;
 import com.ecommerce.inventoryservice.exception.InventoryNotFoundException;
 import com.ecommerce.inventoryservice.mapper.InventoryMapper;
 import com.ecommerce.inventoryservice.repository.InventoryRepository;
@@ -25,6 +26,20 @@ public class InventoryService {
     public void addInventory(InventoryRequest request)
     {
         Inventory inventory=inventoryMapper.toEntity(request);
+        inventoryRepo.save(inventory);
+    }
+
+    public void updateStock(OrderPlacedEvent event) {
+        Inventory inventory=inventoryRepo.findBySkuCode(event.getSkucode())
+                .orElseThrow(()->new InventoryNotFoundException(event.getSkucode()));
+        Integer availableQuantity=inventory.getQuantity();
+        Integer orderedQuantity=event.getQuantity();
+        if(availableQuantity<orderedQuantity)
+        {
+            throw new RuntimeException("Insufficient stock for this skuCode");
+
+        }
+        inventory.setQuantity(availableQuantity-orderedQuantity);
         inventoryRepo.save(inventory);
     }
 }
